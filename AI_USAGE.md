@@ -20,6 +20,7 @@
 - O usuário solicitou: "refaça essa paleta de  cores para manter harmonia. Se baseie no azul, mas use tons de laranja como accent."
 - Translation: "Redo this color palette to keep harmony. Base it on blue, but use orange tones as accent."
 - O usuário solicitou: "create 10 example text files with minimum of 500 words for each file. Those texts must have coeherence and be based on actual texts and must be in english. This files doens't not need to be persisted. Only create the txt files in data/input"
+- O usuário solicitou: "translate the comments to english"
 
 
 # AI Usage Transparency

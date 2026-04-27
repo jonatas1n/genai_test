@@ -155,7 +155,7 @@ async def websocket_endpoint(websocket: WebSocket, process_id: str):
     await manager.connect(process_id, websocket)
     try:
         while True:
-            # verifica a cada segundo se o processo terminou
+            # Check every second whether the process has finished.
             await asyncio.sleep(1)
             with get_db() as db:
                 result = crud.get_result(db, process_id)

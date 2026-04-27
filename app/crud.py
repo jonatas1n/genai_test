@@ -22,7 +22,7 @@ def create_process(db: Session, process_id: str, documents: list[dict]) -> Proce
             )
         )
 
-    # cria o resultado vazio para que o WebSocket já encontre o registro
+    # Create an empty result so the WebSocket can already find the record.
     db.add(
         Result(
             process_id=process_id,
