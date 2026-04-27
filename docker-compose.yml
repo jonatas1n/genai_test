@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: document_processor_postgres
+    environment:
+      POSTGRES_DB: document_processor
+      POSTGRES_USER: document_user
+      POSTGRES_PASSWORD: document_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U document_user -d document_processor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: document_processor_backend
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://document_user:document_password@postgres:5432/document_processor
+      INPUT_DIRECTORY: ./data/input
+      WATCHFILES_FORCE_POLLING: "true"
+      WATCHFILES_POLL_DELAY_MS: "300"
+      APP_MODULE: app.main:app
+    volumes:
+      - ./:/app
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

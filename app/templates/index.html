@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document Processing UI</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body>
+    <template id="document-item-template">
+      <details class="item">
+        <summary class="item__details">
+          <div class="item__counter">
+            <i data-lucide="file-text" aria-hidden="true"></i>
+            <span class="item__counter-value"></span>
+          </div>
+          <div class="item__created-at">
+            <i data-lucide="calendar-days" aria-hidden="true"></i>
+            <span class="item__created-at-value"></span>
+          </div>
+        </summary>
+      </details>
+    </template>
+    <header>
+      <div class="container">
+        <div class="header__content">
+          <div class="header__title">
+            <h1>Document Processing System</h1>
+            <small>
+              Made with tons of 💖 by
+              <strong>Jônatas Gomes B. da Silva</strong>
+            </small>
+          </div>
+          <input type="file" id="documents" multiple />
+        </div>
+      </div>
+    </header>
+    <main>
+      <div class="container">
+        <section class="documents loading">
+          <div class="loader">
+            <i data-lucide="loader-circle" aria-hidden="true"></i>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      lucide.createIcons();
+    </script>
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>

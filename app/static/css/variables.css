@@ -1,0 +1,39 @@
+:root {
+  /* 60 / 30 / 10 distribution */
+  --color-ratio-base: 60%;
+  --color-ratio-support: 30%;
+  --color-ratio-accent: 10%;
+
+  /* Neutral foreground/background */
+  --color-fg-neutral: #1f2937;
+  --color-bg-neutral: #f3f4f6;
+
+  /* Palette A (default): sober blue + gray */
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-foreground: #eff6ff;
+
+  --color-secondary: #6b7280;
+  --color-secondary-dark: #4b5563;
+  --color-secondary-foreground: #f9fafb;
+
+  --color-accent: #0ea5e9;
+  --color-accent-dark: #0284c7;
+}
+
+/* Dark counterparts for Palette A */
+[data-theme="dark"] {
+  --color-fg-neutral: #e5e7eb;
+  --color-bg-neutral: #0f172a;
+
+  --color-primary: #60a5fa;
+  --color-primary-dark: #3b82f6;
+  --color-primary-foreground: #0b1222;
+
+  --color-secondary: #9ca3af;
+  --color-secondary-dark: #6b7280;
+  --color-secondary-foreground: #111827;
+
+  --color-accent: #38bdf8;
+  --color-accent-dark: #0ea5e9;
+}
