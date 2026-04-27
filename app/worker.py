@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from collections import Counter
 from datetime import datetime, timedelta
 
@@ -8,13 +9,18 @@ from app.models import ProcessStatus
 from app.processor import parse_text_metrics
 from app.websocket_manager import manager
 
+logger = logging.getLogger(__name__)
+
 TOP_N = 5
 
 
 async def execute_process(process_id: str, stop_signals: set[str]) -> None:
+    logger.info("Starting execution of process '%s'.", process_id)
+
     with get_db() as db:
         documents = crud.get_documents_by_process(db, process_id)
         if not documents:
+            logger.warning("Process '%s' has no documents to process.", process_id)
             process = crud.get_process(db, process_id)
             if process:
                 process.status = ProcessStatus.FAILED.value
@@ -23,6 +29,8 @@ async def execute_process(process_id: str, stop_signals: set[str]) -> None:
             return
 
     total = len(documents)
+    logger.info("Process '%s' will handle %d document(s).", process_id, total)
+
     accumulated_words = 0
     accumulated_lines = 0
     accumulated_chars = 0
@@ -31,6 +39,7 @@ async def execute_process(process_id: str, stop_signals: set[str]) -> None:
 
     for index, document in enumerate(documents, start=1):
         if process_id in stop_signals:
+            logger.info("Stop signal received for process '%s'. Halting.", process_id)
             with get_db() as db:
                 process = crud.get_process(db, process_id)
                 if process:
@@ -39,6 +48,10 @@ async def execute_process(process_id: str, stop_signals: set[str]) -> None:
             return
 
         await asyncio.sleep(0.05)
+
+        logger.debug(
+            "Processing document %d/%d: '%s'.", index, total, document.document_name
+        )
 
         metrics = parse_text_metrics(document.content)
         accumulated_words += metrics["total_words"]
@@ -64,7 +77,11 @@ async def execute_process(process_id: str, stop_signals: set[str]) -> None:
 
             process = crud.get_process(db, process_id)
             if not process:
+                logger.error(
+                    "Process '%s' not found in database during execution.", process_id
+                )
                 return
+
             process.completed_files = index
             process.estimated_completion = datetime.utcnow() + timedelta(
                 seconds=max(total - index, 0)
@@ -92,3 +109,5 @@ async def execute_process(process_id: str, stop_signals: set[str]) -> None:
                 },
             },
         )
+
+    logger.info("Process '%s' completed successfully.", process_id)
