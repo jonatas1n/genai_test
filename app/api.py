@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import uuid
 from typing import List
 
@@ -23,6 +24,8 @@ from app.schemas import (
 )
 from app.worker import execute_process
 from app.websocket_manager import manager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/process", tags=["process"])
 stop_signals: set[str] = set()
@@ -78,6 +81,13 @@ async def start_process(
         content = (await document.read()).decode("utf-8", errors="ignore")
         parsed_documents.append({"name": document.filename, "content": content})
 
+    logger.info(
+        "Starting process '%s' with %d file(s): %s.",
+        process_id,
+        len(parsed_documents),
+        [d["name"] for d in parsed_documents],
+    )
+
     with get_db() as db:
         crud.create_process(db, process_id, parsed_documents)
 
@@ -91,6 +101,7 @@ async def start_process(
 
 @router.post("/stop/{process_id}", response_model=ProcessResponse)
 async def stop_process(process_id: str):
+    logger.info("Stop requested for process '%s'.", process_id)
     stop_signals.add(process_id)
     with get_db() as db:
         process = get_process_or_404(db, process_id)
@@ -145,19 +156,23 @@ async def get_process_results(process_id: str):
         )
 
 
-@router.post("/resume/{process_id}", response_model=ResultsSchema)
+@router.post("/resume/{process_id}", response_model=ProcessResponse)
 async def resume_process(process_id: str):
+    logger.info("Resume requested for process '%s'.", process_id)
     with get_db() as db:
         process = get_process_or_404(db, process_id)
-        result = crud.resume_process(db, process)
+        result = crud.get_result(db, process_id)
+        crud.resume_process(db, process)
         return _to_response(process, result)
 
 
-@router.post("/pause/{process_id}", response_model=ResultsSchema)
+@router.post("/pause/{process_id}", response_model=ProcessResponse)
 async def pause_process(process_id: str):
+    logger.info("Pause requested for process '%s'.", process_id)
     with get_db() as db:
         process = get_process_or_404(db, process_id)
-        result = crud.pause_process(db, process)
+        result = crud.get_result(db, process_id)
+        crud.pause_process(db, process)
         return _to_response(process, result)
 
 
@@ -166,6 +181,7 @@ async def websocket_endpoint(websocket: WebSocket, process_id: str):
     with get_db() as db:
         process = crud.get_process(db, process_id)
         if not process:
+            logger.warning("WebSocket rejected: process '%s' not found.", process_id)
             await websocket.close(code=4004)
             return
 
@@ -179,7 +195,7 @@ async def websocket_endpoint(websocket: WebSocket, process_id: str):
                 if result and result.is_finished:
                     break
     except WebSocketDisconnect:
-        pass
+        logger.info("WebSocket client disconnected from process '%s'.", process_id)
     finally:
         manager.disconnect(process_id, websocket)
         await websocket.close()
