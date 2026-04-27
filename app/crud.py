@@ -1,10 +1,19 @@
-from sqlalchemy.orm import Session
-import time
+import logging
 import random
+import time
+
+from sqlalchemy.orm import Session
+
 from app.models import Document, Process, ProcessStatus, Result
+
+logger = logging.getLogger(__name__)
 
 
 def create_process(db: Session, process_id: str, documents: list[dict]) -> Process:
+    logger.info(
+        "Creating process '%s' with %d document(s).", process_id, len(documents)
+    )
+
     process = Process(
         process_id=process_id,
         total_files=len(documents),
@@ -37,10 +46,12 @@ def create_process(db: Session, process_id: str, documents: list[dict]) -> Proce
 
     db.commit()
     db.refresh(process)
+    logger.info("Process '%s' created successfully.", process_id)
     return process
 
 
 def resume_process(db: Session, process: Process) -> Process:
+    logger.info("Resuming process '%s'.", process.process_id)
     process.status = ProcessStatus.RUNNING.value
     db.commit()
     db.refresh(process)
@@ -48,6 +59,7 @@ def resume_process(db: Session, process: Process) -> Process:
 
 
 def pause_process(db: Session, process: Process) -> Process:
+    logger.info("Pausing process '%s'.", process.process_id)
     process.status = ProcessStatus.PAUSED.value
     db.commit()
     db.refresh(process)
@@ -59,6 +71,7 @@ def get_process(db: Session, process_id: str) -> Process | None:
 
 
 def stop_process(db: Session, process: Process) -> Process:
+    logger.info("Stopping process '%s'.", process.process_id)
     process.status = ProcessStatus.STOPPED.value
     db.commit()
     db.refresh(process)
@@ -76,6 +89,9 @@ def get_documents_by_process(db: Session, process_id: str) -> list[Document]:
 def mark_document_processed(db: Session, document_id: int) -> None:
     document = db.query(Document).filter(Document.id == document_id).first()
     if not document:
+        logger.warning(
+            "Document id=%d not found when marking as processed.", document_id
+        )
         return
     document.is_processed = True
     db.commit()
@@ -90,6 +106,7 @@ def upsert_result(
 ) -> Result:
     result = db.query(Result).filter(Result.process_id == process_id).first()
     if result is None:
+        logger.debug("No existing result for '%s', creating a new one.", process_id)
         result = Result(process_id=process_id)
         db.add(result)
 
@@ -105,4 +122,8 @@ def upsert_result(
 
     db.commit()
     db.refresh(result)
+
+    if is_finished:
+        logger.info("Result for process '%s' marked as finished.", process_id)
+
     return result
