@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document Processing UI</title>
+    <title>Summarizer.txt</title>
     <link rel="stylesheet" href="/static/css/styles.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
@@ -50,18 +50,22 @@
       <div class="container">
         <div class="header__content">
           <div class="header__title">
-            <h1>Document Processing System</h1>
-            <small>
-              Made with tons of 💖 by
-              <strong>Jônatas Gomes B. da Silva</strong>
-            </small>
+            <h1>summarizer.txt</h1>
           </div>
-          <input type="file" id="documents" multiple />
+          <label for="documents">
+            <i data-lucide="upload"></i>
+            Upload Documents
+            <input name="documents" type="file" id="documents" multiple />
+          </label>
         </div>
       </div>
     </header>
     <main>
       <div class="container">
+        <small class="signature">
+          Made with 💖 by
+          <strong> Jônatas Gomes B. da Silva</strong>
+        </small>
         <section class="documents loading">
           <div class="loader">
             <i data-lucide="loader-circle" aria-hidden="true"></i>

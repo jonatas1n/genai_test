@@ -17,6 +17,8 @@
 - Translation: "Undo. Translation should be done only in the AI usage file."
 - O usuário solicitou: "Organize o arquivo css"
 - Translation: "Organize the CSS file"
+- O usuário solicitou: "refaça essa paleta de  cores para manter harmonia. Se baseie no azul, mas use tons de laranja como accent."
+- Translation: "Redo this color palette to keep harmony. Base it on blue, but use orange tones as accent."
 
 
 # AI Usage Transparency

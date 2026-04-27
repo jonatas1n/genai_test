@@ -1,13 +1,16 @@
 @import url("/static/css/variables.css");
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap');
 
-/* --- Base & Layout --- */
 html,
 body {
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
+  font-family: 'Manrope', sans-serif;
+  letter-spacing: -0.02em;
+  background-color: var(--color-bg-neutral);
 }
 
+/* --- Base & Layout --- */
 .container {
   max-width: 1400px;
   width: 80%;
@@ -16,8 +19,8 @@ body {
 
 /* --- Header --- */
 header {
-  background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
+  background-color: var(--color-bg-neutral);
+  color: var(--color-primary);
   padding: 1rem 0;
 }
 
@@ -34,6 +37,23 @@ header {
 
 .header__title h1 {
   margin: 0;
+}
+
+header label input {
+  display: none;
+}
+
+header label {
+  border-radius: .5rem;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: .5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  font-size: 1.125rem;
+  cursor: pointer;
 }
 
 /* --- Main & Documents Section --- */
@@ -69,9 +89,10 @@ header {
 /* --- Document Item (Details) --- */
 .item {
   border-radius: .5rem;
-  border: 1px solid #CCCCCC;
+  border: 1px solid #CCCCCC66;
   padding: .5rem 1rem;
   cursor: pointer;
+  background-color: var(--color-secondary-foreground);
 }
 
 /* Esconde o marker nativo do sumário */
@@ -163,16 +184,44 @@ header {
 .item__results {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: .5rem;
   align-items: center;
   margin-top: 1rem;
-  padding: 1rem 1rem 1rem 2rem;
-  background-color: var(--color-bg-neutral);
   border-radius: .5rem;
+}
+
+.item__results > * {
+  padding: .5rem;
+  border: 2px solid white;
+  background-color: var(--color-bg-neutral);
+
+  &:not(:last-child):nth-child(2n - 1) {
+    border-right: none;
+  }
+
+  &:not(:last-child) {
+    border-bottom: none;
+  }
+
+  &:first-child {
+    border-top-left-radius: .5rem;
+  }
+
+  &:nth-child(2) {
+    border-top-right-radius: .5rem;
+  }
+
+  &:last-child {
+    border-bottom-right-radius: .5rem;
+    border-bottom-left-radius: .5rem;
+  }
 }
 
 .item__results-item-value {
   font-weight: bold;
+}
+
+.item__results-files-label{
+  grid-column: span 2;
 }
 
 /* --- Animation & Transitions --- */
@@ -182,6 +231,15 @@ header {
 
 .item[open] .marker {
   transform: rotate(90deg);
+}
+
+.signature {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: 1rem;
+  opacity: .5;
 }
 
 @keyframes spin {
