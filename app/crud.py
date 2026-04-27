@@ -40,6 +40,20 @@ def create_process(db: Session, process_id: str, documents: list[dict]) -> Proce
     return process
 
 
+def resume_process(db: Session, process: Process) -> Process:
+    process.status = ProcessStatus.RUNNING.value
+    db.commit()
+    db.refresh(process)
+    return process
+
+
+def pause_process(db: Session, process: Process) -> Process:
+    process.status = ProcessStatus.PAUSED.value
+    db.commit()
+    db.refresh(process)
+    return process
+
+
 def get_process(db: Session, process_id: str) -> Process | None:
     return db.query(Process).filter(Process.process_id == process_id).first()
 

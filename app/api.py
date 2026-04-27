@@ -28,6 +28,13 @@ router = APIRouter(prefix="/process", tags=["process"])
 stop_signals: set[str] = set()
 
 
+def get_process_or_404(db, process_id: str):
+    process = crud.get_process(db, process_id)
+    if not process:
+        raise HTTPException(status_code=404, detail="Process not found.")
+    return process
+
+
 def _to_response(process, result) -> ProcessResponse:
     percentage = 0.0
     if process.total_files > 0:
@@ -86,9 +93,7 @@ async def start_process(
 async def stop_process(process_id: str):
     stop_signals.add(process_id)
     with get_db() as db:
-        process = crud.get_process(db, process_id)
-        if not process:
-            raise HTTPException(status_code=404, detail="Process not found.")
+        process = get_process_or_404(db, process_id)
 
         if process.status in {
             ProcessStatus.STOPPED.value,
@@ -106,9 +111,7 @@ async def stop_process(process_id: str):
 @router.get("/status/{process_id}", response_model=ProcessResponse)
 async def get_process_status(process_id: str):
     with get_db() as db:
-        process = crud.get_process(db, process_id)
-        if not process:
-            raise HTTPException(status_code=404, detail="Process not found.")
+        process = get_process_or_404(db, process_id)
         result = db.query(Result).filter_by(process_id=process_id).first()
         return _to_response(process, result)
 
@@ -127,9 +130,7 @@ async def list_processes():
 @router.get("/results/{process_id}", response_model=ResultsSchema)
 async def get_process_results(process_id: str):
     with get_db() as db:
-        process = crud.get_process(db, process_id)
-        if not process:
-            raise HTTPException(status_code=404, detail="Process not found.")
+        get_process_or_404(db, process_id)
 
         result = db.query(Result).filter_by(process_id=process_id).first()
         if not result:
@@ -142,6 +143,22 @@ async def get_process_results(process_id: str):
             most_frequent_words=result.most_frequent_words,
             files_processed=result.files_processed,
         )
+
+
+@router.post("/resume/{process_id}", response_model=ResultsSchema)
+async def resume_process(process_id: str):
+    with get_db() as db:
+        process = get_process_or_404(db, process_id)
+        result = crud.resume_process(db, process)
+        return _to_response(process, result)
+
+
+@router.post("/pause/{process_id}", response_model=ResultsSchema)
+async def pause_process(process_id: str):
+    with get_db() as db:
+        process = get_process_or_404(db, process_id)
+        result = crud.pause_process(db, process)
+        return _to_response(process, result)
 
 
 @router.websocket("/ws/{process_id}")
