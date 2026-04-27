@@ -1,7 +1,10 @@
+import logging
 from collections import Counter
 
+logger = logging.getLogger(__name__)
 
 TOP_N = 5
+
 
 def parse_text_metrics(text: str) -> dict:
     lines = text.splitlines()
@@ -19,6 +22,8 @@ def parse_text_metrics(text: str) -> dict:
 
 
 def aggregate_results(documents: list[dict], top_n: int = TOP_N) -> dict:
+    logger.debug("Aggregating results for %d document(s).", len(documents))
+
     total_words = 0
     total_lines = 0
     total_chars = 0
@@ -32,8 +37,15 @@ def aggregate_results(documents: list[dict], top_n: int = TOP_N) -> dict:
         total_chars += metrics["total_chars"]
         merged_counter.update(metrics["word_counter"])
         files_processed.append(document["name"])
+        logger.debug("Parsed '%s': %d words.", document["name"], metrics["total_words"])
 
     most_frequent_words = [word for word, _ in merged_counter.most_common(top_n)]
+
+    logger.debug(
+        "Aggregation complete. Total words: %d, files: %d.",
+        total_words,
+        len(files_processed),
+    )
 
     return {
         "total_words": total_words,
