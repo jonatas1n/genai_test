@@ -15,6 +15,7 @@ function createDocumentItem(data) {
   item.querySelector(".item__counter-value").textContent = results.files_processed.length;
   item.querySelector(".item__created-at-value").textContent = formatDate(started_at);
   item.querySelector(".item__status-value").textContent = status;
+  item.querySelector(".item__status").classList.add(status.toLowerCase());
   item.querySelector(".item__results-total-words-label .item__results-item-value").textContent = results.total_words;
   item.querySelector(".item__results-total-lines-label .item__results-item-value").textContent = results.total_lines;
   item.querySelector(".item__results-total-chars-label .item__results-item-value").textContent = results.total_chars;
