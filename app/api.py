@@ -2,7 +2,15 @@ import asyncio
 import uuid
 from typing import List
 
-from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    File,
+    HTTPException,
+    UploadFile,
+    WebSocket,
+)
+from fastapi.websockets import WebSocketDisconnect
 
 from app import crud
 from app.database import get_db
@@ -14,6 +22,7 @@ from app.schemas import (
     StartProcessResponse,
 )
 from app.worker import execute_process
+from app.websocket_manager import manager
 
 router = APIRouter(prefix="/process", tags=["process"])
 stop_signals: set[str] = set()
@@ -133,3 +142,27 @@ async def get_process_results(process_id: str):
             most_frequent_words=result.most_frequent_words,
             files_processed=result.files_processed,
         )
+
+
+@router.websocket("/ws/{process_id}")
+async def websocket_endpoint(websocket: WebSocket, process_id: str):
+    with get_db() as db:
+        process = crud.get_process(db, process_id)
+        if not process:
+            await websocket.close(code=4004)
+            return
+
+    await manager.connect(process_id, websocket)
+    try:
+        while True:
+            # verifica a cada segundo se o processo terminou
+            await asyncio.sleep(1)
+            with get_db() as db:
+                result = crud.get_result(db, process_id)
+                if result and result.is_finished:
+                    break
+    except WebSocketDisconnect:
+        pass
+    finally:
+        manager.disconnect(process_id, websocket)
+        await websocket.close()

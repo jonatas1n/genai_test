@@ -246,6 +246,22 @@ header label {
   color: black;
 }
 
+
+/* --- Locked details (process running) --- */
+.item--locked {
+  cursor: default;
+}
+
+.item--locked > summary {
+  cursor: default;
+  pointer-events: none;
+}
+
+.item--locked .marker {
+  opacity: 0.3;
+}
+
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

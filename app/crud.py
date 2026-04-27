@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-
+import time
+import random
 from app.models import Document, Process, ProcessStatus, Result
 
 
@@ -20,6 +21,19 @@ def create_process(db: Session, process_id: str, documents: list[dict]) -> Proce
                 content=document["content"],
             )
         )
+
+    # cria o resultado vazio para que o WebSocket já encontre o registro
+    db.add(
+        Result(
+            process_id=process_id,
+            total_words=0,
+            total_lines=0,
+            total_chars=0,
+            most_frequent_words=[],
+            files_processed=[],
+            is_finished=False,
+        )
+    )
 
     db.commit()
     db.refresh(process)
@@ -53,7 +67,13 @@ def mark_document_processed(db: Session, document_id: int) -> None:
     db.commit()
 
 
-def upsert_result(db: Session, process_id: str, payload: dict) -> Result:
+def get_result(db: Session, process_id: str) -> Result | None:
+    return db.query(Result).filter(Result.process_id == process_id).first()
+
+
+def upsert_result(
+    db: Session, process_id: str, payload: dict, is_finished: bool = False
+) -> Result:
     result = db.query(Result).filter(Result.process_id == process_id).first()
     if result is None:
         result = Result(process_id=process_id)
@@ -64,6 +84,11 @@ def upsert_result(db: Session, process_id: str, payload: dict) -> Result:
     result.total_chars = payload["total_chars"]
     result.most_frequent_words = payload["most_frequent_words"]
     result.files_processed = payload["files_processed"]
+    result.is_finished = is_finished
+
+    delay_seconds = random.randint(1, 10)
+    time.sleep(5 + delay_seconds)
+
     db.commit()
     db.refresh(result)
     return result
