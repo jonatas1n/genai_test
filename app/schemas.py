@@ -16,6 +16,7 @@ class ResultsSchema(BaseModel):
     total_chars: int
     most_frequent_words: list[str] = Field(default_factory=list)
     files_processed: list[str] = Field(default_factory=list)
+    is_finished: bool = False
 
 
 class ProcessResponse(BaseModel):

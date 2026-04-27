@@ -51,3 +51,4 @@ class Result(Base):
     total_chars = Column(Integer, nullable=False, default=0)
     most_frequent_words = Column(ARRAY(String), nullable=False, default=list)
     files_processed = Column(ARRAY(String), nullable=False, default=list)
+    is_finished = Column(Boolean, nullable=True, server_default="false")
