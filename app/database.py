@@ -1,9 +1,11 @@
+import logging
 import os
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
@@ -20,5 +22,8 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        logger.exception("Unexpected error during database session.")
+        raise
     finally:
         db.close()
