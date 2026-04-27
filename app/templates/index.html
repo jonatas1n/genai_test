@@ -11,15 +11,39 @@
     <template id="document-item-template">
       <details class="item">
         <summary class="item__details">
-          <div class="item__counter">
-            <i data-lucide="file-text" aria-hidden="true"></i>
-            <span class="item__counter-value"></span>
+          <div class="item__details-left">
+            <i data-lucide="chevron-right" class="marker"></i>
+            <div class="item__counter">
+              <i data-lucide="file" width="40" height="40"></i>
+              <span class="item__counter-value"></span>
+            </div>
+            <div class="item__status">
+              <span class="item__status-value"></span>
+            </div>
           </div>
           <div class="item__created-at">
-            <i data-lucide="calendar-days" aria-hidden="true"></i>
+            <i data-lucide="calendar"></i>
             <span class="item__created-at-value"></span>
           </div>
         </summary>
+        <div class="item__results">
+          <div class="item__results-total-words-label">
+            Total Words: <span class="item__results-item-value"></span>
+          </div>
+          <div class="item__results-total-lines-label">
+            Total Lines: <span class="item__results-item-value"></span>
+          </div>
+          <div class="item__results-total-chars-label">
+            Total Chars: <span class="item__results-item-value"></span>
+          </div>
+          <div class="item__results-frequent-words-label">
+            Most Frequent Words: <span class="item__results-item-value"></span>
+          </div>
+          <div class="item__results-files-label">
+            Processed Files:
+            <div class="item__results-item-value"></div>
+          </div>
+        </div>
       </details>
     </template>
     <header>
@@ -47,7 +71,9 @@
     </main>
 
     <script>
-      lucide.createIcons();
+      document.addEventListener("DOMContentLoaded", () => {
+        lucide.createIcons();
+      });
     </script>
     <script src="/static/js/app.js"></script>
   </body>

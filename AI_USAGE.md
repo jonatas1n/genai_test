@@ -15,6 +15,8 @@
 - O usuário solicitou: "Adicione uma tradução na frente dos comandos que estiverem em português"
 - O usuário solicitou: "Desfaça. A tradução deve ser feita apenas no ai usage file"
 - Translation: "Undo. Translation should be done only in the AI usage file."
+- O usuário solicitou: "Organize o arquivo css"
+- Translation: "Organize the CSS file"
 
 
 # AI Usage Transparency
