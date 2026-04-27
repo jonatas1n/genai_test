@@ -220,7 +220,7 @@ header label {
   font-weight: bold;
 }
 
-.item__results-files-label{
+.item__results-files-label {
   grid-column: span 2;
 }
 
