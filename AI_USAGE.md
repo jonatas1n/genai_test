@@ -23,6 +23,7 @@
 - O usuário solicitou: "translate the comments to english"
 - O usuário solicitou: "Create a template to an API documentation"
 - O usuário solicitou: "@API_DOCS.md:1-250 translate this doc."
+- O usuário solicitou: "translate the readme and fix every grammar issue"
 
 
 # AI Usage Transparency

@@ -1,58 +1,59 @@
 # Document Processing System
 
-API REST para processamento assíncrono de documentos de texto com monitoramento em tempo real.
+REST API for asynchronous text document processing with real-time monitoring.
 
-O vídeo de apresentação da ferramenta está em: https://youtu.be/GVMY4jKIS1w
+Tool presentation video: [https://youtu.be/GVMY4jKIS1w](https://youtu.be/GVMY4jKIS1w)
 
-## Sobre o Projeto
+## About the Project
 
-O sistema permite carregar arquivos `.txt`, processá-los em lote e extrair métricas de conteúdo. Tudo de forma assíncrona e não bloqueante. Cada processo tem um ciclo de vida completo com controle de estado, e os resultados são atualizados incrementalmente conforme os arquivos são analisados.
+This system allows users to upload `.txt` files, process them in batches, and extract content metrics.  
+All processing is asynchronous and non-blocking. Each process has a full lifecycle with state control, and results are updated incrementally as files are analyzed.
 
-A ideia central foi manter a arquitetura simples e funcional, mantendo a simplicidade. O processamento roda em background via `BackgroundTasks` do FastAPI, e o banco de dados serve tanto para persistência quanto para coordenação de estado entre o worker e a API.
+The main design goal is to keep the architecture simple and practical. Processing runs in the background using FastAPI `BackgroundTasks`, and the database is used for both persistence and state coordination between the worker and the API layer.
 
 ---
 
-## Funcionalidades
+## Features
 
-- Processamento assíncrono de múltiplos arquivos `.txt`
-- Extração de métricas por arquivo e agregadas: palavras, linhas, caracteres, palavras mais frequentes e resumo de conteúdo
-- Controle completo do ciclo de vida: iniciar, pausar, retomar, parar
-- Resultados incrementais — atualizados a cada arquivo processado
-- Atualizações em tempo real via WebSocket
-- Interface web para monitoramento
-- Persistência de estados e resultados no PostgreSQL
+- Asynchronous processing of multiple `.txt` files
+- Per-file and aggregated metrics extraction: words, lines, characters, most frequent words, and summary
+- Full lifecycle control: start, pause, resume, stop
+- Incremental results updated after each processed file
+- Real-time updates via WebSocket
+- Web UI for monitoring
+- Process state and results persistence in PostgreSQL
 
-### Estados do Processo
+### Process States
 
-| Estado | Descrição |
+| State | Description |
 |---|---|
-| `RUNNING` | Processamento em andamento |
-| `PAUSED` | Pausado temporariamente |
-| `COMPLETED` | Finalizado com sucesso |
-| `FAILED` | Encerrado com erro |
-| `STOPPED` | Interrompido manualmente |
+| `RUNNING` | Processing is in progress |
+| `PAUSED` | Temporarily paused |
+| `COMPLETED` | Finished successfully |
+| `FAILED` | Finished with an error |
+| `STOPPED` | Manually stopped |
 
 ---
 
-## Tecnologias
+## Technology Stack
 
 - **Python 3.12**
-- **FastAPI** — framework web e WebSocket
-- **SQLAlchemy** — ORM
-- **PostgreSQL** — banco de dados
-- **Alembic** — migrações
-- **Docker + Docker Compose** — ambiente de execução
+- **FastAPI** - Web framework and WebSocket support
+- **SQLAlchemy** - ORM
+- **PostgreSQL** - Database
+- **Alembic** - Migrations
+- **Docker + Docker Compose** - Runtime environment
 
 ---
 
-## Como Rodar
+## How to Run
 
-### Pré-requisitos
+### Prerequisites
 
 - Docker
 - Docker Compose
 
-### Subindo o ambiente
+### Start the Environment
 
 ```bash
 git clone <repo-url>
@@ -60,12 +61,12 @@ cd <repo>
 docker compose up --build
 ```
 
-A API estará disponível em `http://localhost:8000/process`.  
-A interface web pode ser acessada em `http://localhost:8000`.
+API base routes are available at `http://localhost:8000/process`.  
+The web interface is available at `http://localhost:8000`.
 
-### Rodando as migrações manualmente (opcional)
+### Run Migrations Manually (Optional)
 
-As migrações rodam automaticamente na inicialização. Caso precise rodar manualmente:
+Migrations run automatically on startup. If you need to run them manually:
 
 ```bash
 docker compose exec app alembic upgrade head
@@ -73,22 +74,22 @@ docker compose exec app alembic upgrade head
 
 ---
 
-## Dados de Teste
+## Test Data
 
-A pasta `data/input/` contém 10 arquivos `.txt` com textos clássicos da literatura e filosofia, cada um com mais de 500 palavras:
+The `data/input/` folder contains 10 `.txt` files based on classic literature and philosophy texts, each with more than 500 words:
 
 - Pride and Prejudice
-- Moby Dick
+- Moby-Dick
 - Frankenstein
-- Huckleberry Finn
+- Adventures of Huckleberry Finn
 - A Tale of Two Cities
 - The Republic (Plato)
 - Federalist No. 10
-- Gettysburg Address + Second Inaugural
+- Gettysburg Address + Second Inaugural Address
 - On the Origin of Species
 - The Wealth of Nations
 
-Para popular o banco com esses arquivos via script:
+To seed the database with these files via script:
 
 ```bash
 docker compose exec app python scripts/seed_files.py
@@ -96,58 +97,58 @@ docker compose exec app python scripts/seed_files.py
 
 ---
 
-## Testes
+## Tests
 
 ```bash
 docker compose exec app pytest tests/ -v
 ```
 
-Os testes cobrem os principais fluxos: iniciar processo, verificar status, listar processos, parar, e validar resultados após conclusão.
+The test suite covers core flows: start process, check status, list processes, stop a process, and validate results after completion.
 
 ---
 
-## Endpoints Principais
+## Main Endpoints
 
-| Método | Rota | Descrição |
+| Method | Route | Description |
 |---|---|---|
-| POST | `/process/start` | Inicia um novo processo |
-| GET | `/process/status/{id}` | Consulta o estado atual |
-| GET | `/process/results/{id}` | Retorna os resultados |
-| POST | `/process/stop/{id}` | Para o processo |
-| POST | `/process/pause/{id}` | Pausa o processo |
-| POST | `/process/resume/{id}` | Retoma o processo |
-| GET | `/process/list` | Lista todos os processos |
-| WS | `/process/ws/{id}` | Atualizações em tempo real |
+| POST | `/process/start` | Starts a new process |
+| GET | `/process/status/{id}` | Returns current process state |
+| GET | `/process/results/{id}` | Returns process results |
+| POST | `/process/stop/{id}` | Stops a process |
+| POST | `/process/pause/{id}` | Pauses a process |
+| POST | `/process/resume/{id}` | Resumes a process |
+| GET | `/process/list` | Lists all processes |
+| WS | `/process/ws/{id}` | Real-time updates |
 
-Documentação completa dos endpoints em [`API_DOCS.md`](./API_DOCS.md).
-
----
-
-## Decisões Técnicas
-
-**Por que não usar o Celery?**  
-O Celery é uma ferramenta de workers distribuídos muito eficiente. Contudo, um sistema de processamento local não precisa de tanto. O `BackgroundTasks` do FastAPI é suficiente e elimina a complexidade de configurar um broker externo como Redis ou RabbitMQ.
-
-**Por que resultados incrementais?**  
-Isso permite que o cliente acompanhe o progresso via WebSocket ou polling sem precisar esperar o processamento completo.
-
-**Migrações com Alembic**  
-Toda alteração de schema é versionada. O histórico de migrações reflete a evolução do modelo de dados ao longo do desenvolvimento.
+Full endpoint documentation is available in [`API_DOCS.md`](./API_DOCS.md).
 
 ---
 
-## Estrutura do Projeto
+## Technical Decisions
+
+**Why not Celery?**  
+Celery is an excellent distributed worker solution. However, this local processing system does not require that level of infrastructure. FastAPI `BackgroundTasks` is sufficient and avoids the complexity of configuring an external broker such as Redis or RabbitMQ.
+
+**Why incremental results?**  
+Incremental updates allow clients to monitor progress through WebSocket or polling without waiting for full completion.
+
+**Why Alembic migrations?**  
+Every schema change is versioned. The migration history reflects the evolution of the data model over time.
+
+---
+
+## Project Structure
 
 ```
 .
 ├── app/
-│   ├── api.py              # Endpoints e WebSocket
-│   ├── worker.py           # Lógica de processamento assíncrono
-│   ├── processor.py        # Extração de métricas de texto
-│   ├── crud.py             # Operações no banco de dados
-│   ├── models.py           # Modelos SQLAlchemy
-│   ├── schemas.py          # Schemas Pydantic
-│   ├── database.py         # Configuração da sessão
+│   ├── api.py              # Endpoints and WebSocket
+│   ├── worker.py           # Asynchronous processing logic
+│   ├── processor.py        # Text metrics extraction
+│   ├── crud.py             # Database operations
+│   ├── models.py           # SQLAlchemy models
+│   ├── schemas.py          # Pydantic schemas
+│   ├── database.py         # Session configuration
 │   ├── websocket_manager.py
 │   ├── main.py
 │   ├── static/
