@@ -1,7 +1,7 @@
 import logging
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -35,6 +35,7 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/", response_class=HTMLResponse)
-def render_ui(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/")
+def read_root():
+    template_file = "app/templates/index.html"
+    return FileResponse(template_file)
