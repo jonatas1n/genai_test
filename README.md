@@ -2,7 +2,7 @@
 
 API REST para processamento assíncrono de documentos de texto com monitoramento em tempo real.
 
-O vídeo de apresentação da ferramenta está em: https://youtu.be/-PbiF48baCI
+O vídeo de apresentação da ferramenta está em: https://youtu.be/GVMY4jKIS1w
 
 ## Sobre o Projeto
 
