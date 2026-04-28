@@ -15,7 +15,7 @@ from fastapi.websockets import WebSocketDisconnect
 
 from app import crud
 from app.database import get_db
-from app.models import ProcessStatus, Result
+from app.models import ProcessStatus
 from app.schemas import (
     ProcessResponse,
     ProgressSchema,
@@ -51,6 +51,7 @@ def _to_response(process, result) -> ProcessResponse:
             total_chars=result.total_chars,
             most_frequent_words=result.most_frequent_words,
             files_processed=result.files_processed,
+            is_finished=result.is_finished,
         )
 
     return ProcessResponse(
@@ -77,21 +78,23 @@ async def start_process(
 
     process_id = str(uuid.uuid4())
     parsed_documents: list[dict] = []
+
     for document in documents:
         content = (await document.read()).decode("utf-8", errors="ignore")
         parsed_documents.append({"name": document.filename, "content": content})
 
     logger.info(
-        "Starting process '%s' with %d file(s): %s.",
+        "Starting process '%s' with %d file(s).",
         process_id,
         len(parsed_documents),
-        [d["name"] for d in parsed_documents],
     )
 
     with get_db() as db:
         crud.create_process(db, process_id, parsed_documents)
 
+    stop_signals.discard(process_id)
     background_tasks.add_task(asyncio.run, execute_process(process_id, stop_signals))
+
     return StartProcessResponse(
         message="Process started",
         process_id=process_id,
@@ -103,19 +106,22 @@ async def start_process(
 async def stop_process(process_id: str):
     logger.info("Stop requested for process '%s'.", process_id)
     stop_signals.add(process_id)
+
     with get_db() as db:
         process = get_process_or_404(db, process_id)
 
         if process.status in {
             ProcessStatus.STOPPED.value,
             ProcessStatus.COMPLETED.value,
+            ProcessStatus.FAILED.value,
         }:
             raise HTTPException(
-                status_code=400, detail="Process already finished or stopped."
+                status_code=400,
+                detail="Process already finished or stopped.",
             )
 
         process = crud.stop_process(db, process)
-        result = db.query(Result).filter_by(process_id=process_id).first()
+        result = crud.get_result(db, process_id)
         return _to_response(process, result)
 
 
@@ -123,7 +129,7 @@ async def stop_process(process_id: str):
 async def get_process_status(process_id: str):
     with get_db() as db:
         process = get_process_or_404(db, process_id)
-        result = db.query(Result).filter_by(process_id=process_id).first()
+        result = crud.get_result(db, process_id)
         return _to_response(process, result)
 
 
@@ -132,9 +138,11 @@ async def list_processes():
     with get_db() as db:
         processes = crud.list_processes(db)
         responses = []
+
         for process in processes:
-            result = db.query(Result).filter_by(process_id=process.process_id).first()
+            result = crud.get_result(db, process.process_id)
             responses.append(_to_response(process, result))
+
         return responses
 
 
@@ -143,7 +151,7 @@ async def get_process_results(process_id: str):
     with get_db() as db:
         get_process_or_404(db, process_id)
 
-        result = db.query(Result).filter_by(process_id=process_id).first()
+        result = crud.get_result(db, process_id)
         if not result:
             raise HTTPException(status_code=404, detail="Result not found.")
 
@@ -153,26 +161,43 @@ async def get_process_results(process_id: str):
             total_chars=result.total_chars,
             most_frequent_words=result.most_frequent_words,
             files_processed=result.files_processed,
+            is_finished=result.is_finished,
         )
 
 
 @router.post("/resume/{process_id}", response_model=ProcessResponse)
 async def resume_process(process_id: str):
     logger.info("Resume requested for process '%s'.", process_id)
+
     with get_db() as db:
         process = get_process_or_404(db, process_id)
+
+        if process.status != ProcessStatus.PAUSED.value:
+            raise HTTPException(
+                status_code=400,
+                detail="Only paused processes can be resumed.",
+            )
+
+        process = crud.resume_process(db, process)
         result = crud.get_result(db, process_id)
-        crud.resume_process(db, process)
         return _to_response(process, result)
 
 
 @router.post("/pause/{process_id}", response_model=ProcessResponse)
 async def pause_process(process_id: str):
     logger.info("Pause requested for process '%s'.", process_id)
+
     with get_db() as db:
         process = get_process_or_404(db, process_id)
+
+        if process.status != ProcessStatus.RUNNING.value:
+            raise HTTPException(
+                status_code=400,
+                detail="Only running processes can be paused.",
+            )
+
+        process = crud.pause_process(db, process)
         result = crud.get_result(db, process_id)
-        crud.pause_process(db, process)
         return _to_response(process, result)
 
 
@@ -181,21 +206,38 @@ async def websocket_endpoint(websocket: WebSocket, process_id: str):
     with get_db() as db:
         process = crud.get_process(db, process_id)
         if not process:
-            logger.warning("WebSocket rejected: process '%s' not found.", process_id)
+            logger.warning(
+                "WebSocket rejected because process '%s' was not found.",
+                process_id,
+            )
             await websocket.close(code=4004)
             return
 
     await manager.connect(process_id, websocket)
+
     try:
         while True:
-            # Check every second whether the process has finished.
             await asyncio.sleep(1)
+
             with get_db() as db:
+                process = crud.get_process(db, process_id)
                 result = crud.get_result(db, process_id)
+
+                if not process:
+                    break
+
+                if process.status in {
+                    ProcessStatus.COMPLETED.value,
+                    ProcessStatus.FAILED.value,
+                    ProcessStatus.STOPPED.value,
+                }:
+                    break
+
                 if result and result.is_finished:
                     break
+
     except WebSocketDisconnect:
-        logger.info("WebSocket client disconnected from process '%s'.", process_id)
+        logger.info("WebSocket disconnected for process '%s'.", process_id)
     finally:
         manager.disconnect(process_id, websocket)
         await websocket.close()
