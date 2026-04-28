@@ -2,6 +2,8 @@
 
 API REST para processamento assíncrono de documentos de texto com monitoramento em tempo real.
 
+O vídeo de apresentação da ferramenta está em: https://youtu.be/-PbiF48baCI
+
 ## Sobre o Projeto
 
 O sistema permite carregar arquivos `.txt`, processá-los em lote e extrair métricas de conteúdo. Tudo de forma assíncrona e não bloqueante. Cada processo tem um ciclo de vida completo com controle de estado, e os resultados são atualizados incrementalmente conforme os arquivos são analisados.
