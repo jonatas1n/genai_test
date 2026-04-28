@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from app import crud
 from app.database import get_db
 from app.models import ProcessStatus
-from app.processor import parse_text_metrics
+from app.processor import generate_summary, parse_text_metrics
 from app.websocket_manager import manager
 
 logger = logging.getLogger(__name__)
@@ -183,6 +183,7 @@ async def execute_process(process_id: str, stop_signals: set[str]) -> None:
                     word for word, _ in merged_counter.most_common(TOP_N)
                 ],
                 "files_processed": list(files_processed),
+                "summary": generate_summary(document.content),
             }
 
             is_last = completed_files == total_files

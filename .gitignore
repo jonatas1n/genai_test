@@ -1,3 +1,5 @@
 /README.md
 /scripts
 /tests
+
+*.DS_Store

@@ -99,6 +99,7 @@ def upsert_result(
     result.total_chars = payload["total_chars"]
     result.most_frequent_words = payload["most_frequent_words"]
     result.files_processed = payload["files_processed"]
+    result.summary = payload["summary"]
     result.is_finished = is_finished
 
     delay_seconds = random.randint(1, 10)

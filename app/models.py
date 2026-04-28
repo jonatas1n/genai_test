@@ -52,3 +52,4 @@ class Result(Base):
     most_frequent_words = Column(ARRAY(String), nullable=False, default=list)
     files_processed = Column(ARRAY(String), nullable=False, default=list)
     is_finished = Column(Boolean, nullable=True, server_default="false")
+    summary = Column(Text, nullable=True)
